@@ -54,6 +54,8 @@
                         tip_gen_wilson: "Wilson: Uniform random spanning tree, balanced structure",
                         tip_gen_division: "Division: Top-down recursive split, geometric patterns",
                         tip_animate: "Watch the maze being generated step by step",
+                        random_exit: "Random Exit",
+                        tip_random_exit: "Place exit at a random location instead of bottom-right",
                         tip_sol_algo: "Choose an automatic solving strategy",
                         tip_sol_random: "Random Walk: Pick a random direction each step",
                         tip_sol_smart: "Smart Random: Prefer unvisited cells and direction toward exit",
@@ -126,6 +128,8 @@
                         tip_gen_wilson: "Wilson: 均匀随机生成树，结构均衡",
                         tip_gen_division: "递归分割: 自顶向下切分，几何感强",
                         tip_animate: "逐步观看迷宫的生成过程",
+                        random_exit: "随机终点",
+                        tip_random_exit: "终点随机放置，不固定在右下角",
                         tip_sol_algo: "选择自动求解策略",
                         tip_sol_random: "随机游走: 每步随机选方向",
                         tip_sol_smart: "智能随机: 偏好未访问格子和出口方向",
@@ -206,6 +210,7 @@
                 const rngVision = document.getElementById("rng-vision");
                 const visionVal = document.getElementById("vision-val");
                 const chkAnimate = document.getElementById("chk-animate");
+                const chkRandomExit = document.getElementById("chk-random-exit");
                 const rngSpeed = document.getElementById("rng-speed");
                 const speedVal = document.getElementById("speed-val");
                 const btnGen = document.getElementById("btn-gen");
@@ -232,6 +237,8 @@
                 let maze = [];
                 let cols, rows, cellSize;
                 let player = { x: 0, y: 0 };
+                let playerDir = { dx: 0, dy: 1 }; // last move direction (default: facing down)
+                let exitX, exitY;
                 let steps = 0;
                 let startTime = 0;
                 let timerInterval = null;
@@ -251,7 +258,10 @@
                 let genTimer = null;
                 let genAnimating = false;
                 let genHighlight = null; // {x, y} of current cell during generation
-                let genWalkTrail = []; // Wilson walk trail positions // distance at each step for convergence chart
+                let genWalkTrail = [];
+
+                // Fog animation state
+                let fogAnim = null; // { current, target, step, onDone }
 
                 // Auto-solver state
                 let solveTimer = null;
@@ -695,10 +705,48 @@
                 }
 
                 // Pre-compute BFS distance from every cell to exit
+                // Pick random exit or default to bottom-right
+                function pickExit(w, h) {
+                    if (!chkRandomExit.checked) {
+                        exitX = w - 1;
+                        exitY = h - 1;
+                        return;
+                    }
+                    // BFS from (0,0) to get distances, pick random cell with dist >= (w+h)/2
+                    const dist = Array.from({ length: h }, () => Array(w).fill(-1));
+                    const queue = [{ x: 0, y: 0 }];
+                    dist[0][0] = 0;
+                    while (queue.length > 0) {
+                        const { x, y } = queue.shift();
+                        for (let i = 0; i < 4; i++) {
+                            if (!canMoveDir(x, y, i)) continue;
+                            const nx = x + dirs[i].dx, ny = y + dirs[i].dy;
+                            if (dist[ny][nx] !== -1) continue;
+                            dist[ny][nx] = dist[y][x] + 1;
+                            queue.push({ x: nx, y: ny });
+                        }
+                    }
+                    const maxDist = Math.max(...dist.flat());
+                    const minDist = Math.floor(maxDist / 2);
+                    const candidates = [];
+                    for (let y = 0; y < h; y++)
+                        for (let x = 0; x < w; x++)
+                            if (dist[y][x] >= minDist && !(x === 0 && y === 0))
+                                candidates.push({ x, y });
+                    if (candidates.length > 0) {
+                        const pick = candidates[Math.floor(Math.random() * candidates.length)];
+                        exitX = pick.x;
+                        exitY = pick.y;
+                    } else {
+                        exitX = w - 1;
+                        exitY = h - 1;
+                    }
+                }
+
                 function computeDistMap() {
                     distMap = Array.from({ length: rows }, () => Array(cols).fill(-1));
-                    const queue = [{ x: cols - 1, y: rows - 1 }];
-                    distMap[rows - 1][cols - 1] = 0;
+                    const queue = [{ x: exitX, y: exitY }];
+                    distMap[exitY][exitX] = 0;
                     while (queue.length > 0) {
                         const { x, y } = queue.shift();
                         for (let i = 0; i < 4; i++) {
@@ -801,6 +849,39 @@
                     return true;
                 }
 
+                // ── Fog animation ──
+
+                function startFogAnim(from, to, onDone) {
+                    const frames = 25; // ~400ms at 60fps
+                    fogAnim = {
+                        current: from,
+                        target: to,
+                        step: (to - from) / frames,
+                        onDone: onDone || null,
+                    };
+                    function tick() {
+                        if (!fogAnim) return;
+                        fogAnim.current += fogAnim.step;
+                        const done =
+                            (fogAnim.step > 0 && fogAnim.current >= fogAnim.target) ||
+                            (fogAnim.step < 0 && fogAnim.current <= fogAnim.target);
+                        if (done) {
+                            const cb = fogAnim.onDone;
+                            fogAnim = null;
+                            if (cb) cb();
+                            draw();
+                            return;
+                        }
+                        draw();
+                        requestAnimationFrame(tick);
+                    }
+                    requestAnimationFrame(tick);
+                }
+
+                function getFogFullRadius() {
+                    return Math.sqrt(cols * cols + rows * rows);
+                }
+
                 // ── Drawing ──
 
                 function computeCellSize() {
@@ -829,9 +910,9 @@
                     ctx.fillRect(0, 0, W, H);
 
                     const heatmap = chkHeatmap.checked;
-                    const showTrail = chkTrail.checked;
-                    const fogOn = chkFog.checked && !genAnimating;
-                    const vision = parseInt(rngVision.value);
+                    const showTrail = chkTrail.checked || won;
+                    const fogOn = fogAnim !== null || (chkFog.checked && !genAnimating && !won);
+                    const vision = fogAnim ? fogAnim.current : parseInt(rngVision.value);
                     const connColors = ["#12121f", "#12121f", "#181830", "#222245", "#3d3d78"];
 
                     // Helper: euclidean distance to player
@@ -916,14 +997,14 @@
                     }
 
                     // Exit marker (only if visible)
-                    if (!fogOn || distToPlayer(cols - 1, rows - 1) <= vision) {
-                        const ex = (cols - 1) * cellSize + cellSize / 2;
-                        const ey = (rows - 1) * cellSize + cellSize / 2;
+                    if (!fogOn || distToPlayer(exitX, exitY) <= vision) {
+                        const ex = exitX * cellSize + cellSize / 2;
+                        const ey = exitY * cellSize + cellSize / 2;
                         const glow = ctx.createRadialGradient(ex, ey, 0, ex, ey, cellSize * 0.6);
                         glow.addColorStop(0, "rgba(0,230,118,0.35)");
                         glow.addColorStop(1, "rgba(0,230,118,0)");
                         ctx.fillStyle = glow;
-                        ctx.fillRect((cols - 1) * cellSize, (rows - 1) * cellSize, cellSize, cellSize);
+                        ctx.fillRect(exitX * cellSize, exitY * cellSize, cellSize, cellSize);
                         ctx.beginPath();
                         ctx.arc(ex, ey, cellSize * 0.32, 0, Math.PI * 2);
                         ctx.fillStyle = "#00e676";
@@ -945,6 +1026,35 @@
                     ctx.strokeStyle = "#9d97ff";
                     ctx.lineWidth = 1.5;
                     ctx.stroke();
+
+                    // Player eyes
+                    const eyeR = cellSize * 0.05;
+                    const eyeSpread = cellSize * 0.11;
+                    const eyeOffset = cellSize * 0.1;
+                    ctx.fillStyle = "#1a1a2e";
+                    if (playerDir.dy < 0) {
+                        // UP: two eyes on top
+                        ctx.beginPath();
+                        ctx.arc(px - eyeSpread, py - eyeOffset, eyeR, 0, Math.PI * 2);
+                        ctx.arc(px + eyeSpread, py - eyeOffset, eyeR, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (playerDir.dy > 0) {
+                        // DOWN: two eyes on bottom
+                        ctx.beginPath();
+                        ctx.arc(px - eyeSpread, py + eyeOffset, eyeR, 0, Math.PI * 2);
+                        ctx.arc(px + eyeSpread, py + eyeOffset, eyeR, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (playerDir.dx < 0) {
+                        // LEFT: one eye on upper-left
+                        ctx.beginPath();
+                        ctx.arc(px - eyeOffset, py - eyeR * 1.5, eyeR, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (playerDir.dx > 0) {
+                        // RIGHT: one eye on upper-right
+                        ctx.beginPath();
+                        ctx.arc(px + eyeOffset, py - eyeR * 1.5, eyeR, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
 
                     // Wilson walk trail
                     if (genWalkTrail.length > 0) {
@@ -1005,6 +1115,7 @@
 
                 function doMove(dx, dy) {
                     ensureTimerStarted();
+                    playerDir = { dx, dy };
                     player.x += dx;
                     player.y += dy;
                     steps++;
@@ -1015,14 +1126,16 @@
                     distHistory.push(curDist);
                     updateStatLabels();
                     draw();
-                    if (player.x === cols - 1 && player.y === rows - 1) {
+                    if (player.x === exitX && player.y === exitY) {
                         won = true;
                         clearInterval(timerInterval);
                         stopSolving();
-                        // Reveal full maze on win (disable fog, enable trail)
-                        chkFog.checked = false;
-                        chkTrail.checked = true;
-                        draw();
+                        // Reveal full maze on win with fog expand animation
+                        if (chkFog.checked) {
+                            startFogAnim(parseInt(rngVision.value), getFogFullRadius());
+                        } else {
+                            draw();
+                        }
                         const elapsed = Math.floor((Date.now() - startTime) / 1000);
                         const t = i18n[lang];
                         winMsg.textContent = t.win_result(steps, elapsed);
@@ -1039,28 +1152,6 @@
                 }
 
                 // ── Solvers ──
-
-                // BFS shortest path from (0,0) to exit, returns length
-                function getShortestPathLength() {
-                    const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
-                    const dist = Array.from({ length: rows }, () => Array(cols).fill(0));
-                    const queue = [{ x: 0, y: 0 }];
-                    visited[0][0] = true;
-                    while (queue.length > 0) {
-                        const { x, y } = queue.shift();
-                        if (x === cols - 1 && y === rows - 1) return dist[y][x];
-                        for (let i = 0; i < 4; i++) {
-                            if (!canMoveDir(x, y, i)) continue;
-                            const nx = x + dirs[i].dx,
-                                ny = y + dirs[i].dy;
-                            if (visited[ny][nx]) continue;
-                            visited[ny][nx] = true;
-                            dist[ny][nx] = dist[y][x] + 1;
-                            queue.push({ x: nx, y: ny });
-                        }
-                    }
-                    return -1;
-                }
 
                 function getOpenDirs(x, y) {
                     const result = [];
@@ -1192,7 +1283,7 @@
                         cy = ny;
                         // Stop if we hit a junction (more than 2 openings) or the exit
                         const nextOpen = getOpenDirs(cx, cy);
-                        if (nextOpen.length !== 2 || (cx === cols - 1 && cy === rows - 1)) break;
+                        if (nextOpen.length !== 2 || (cx === exitX && cy === exitY)) break;
                         // In a corridor, continue in the non-backtrack direction
                         const backDir = (chosenDir + 2) % 4;
                         const forward = nextOpen.find((d) => d !== backDir);
@@ -1217,7 +1308,7 @@
                     let found = false;
                     while (stack.length > 0 && !found) {
                         const { x, y } = stack.pop();
-                        if (x === cols - 1 && y === rows - 1) {
+                        if (x === exitX && y === exitY) {
                             found = true;
                             break;
                         }
@@ -1233,8 +1324,8 @@
                     }
                     // Trace path
                     const path = [];
-                    let cx = cols - 1,
-                        cy = rows - 1;
+                    let cx = exitX,
+                        cy = exitY;
                     while (cx !== player.x || cy !== player.y) {
                         path.push({ x: cx, y: cy });
                         const p = parent[cy][cx];
@@ -1254,7 +1345,7 @@
                     let found = false;
                     while (queue.length > 0 && !found) {
                         const { x, y } = queue.shift();
-                        if (x === cols - 1 && y === rows - 1) {
+                        if (x === exitX && y === exitY) {
                             found = true;
                             break;
                         }
@@ -1269,8 +1360,8 @@
                         }
                     }
                     const path = [];
-                    let cx = cols - 1,
-                        cy = rows - 1;
+                    let cx = exitX,
+                        cy = exitY;
                     while (cx !== player.x || cy !== player.y) {
                         path.push({ x: cx, y: cy });
                         const p = parent[cy][cx];
@@ -1322,7 +1413,8 @@
                 }
 
                 function startSolving() {
-                    if (won || genAnimating) return;
+                    if (genAnimating) return;
+                    if (won) resetCounters();
                     stopSolving();
                     solving = true;
                     btnSolve.style.display = "none";
@@ -1456,6 +1548,7 @@
 
                 function resetCounters() {
                     stopSolving();
+                    fogAnim = null;
                     player = { x: 0, y: 0 };
                     steps = 0;
                     won = false;
@@ -1484,6 +1577,8 @@
                     // Clear the grid immediately
                     cols = w;
                     rows = h;
+                    exitX = w - 1;
+                    exitY = h - 1;
                     maze = Array.from({ length: h }, () => Array.from({ length: w }, () => 15));
                     visits = Array.from({ length: h }, () => Array(w).fill(0));
                     player = { x: 0, y: 0 };
@@ -1509,6 +1604,7 @@
                         }
                         replayGeneration(result, w, h, () => {
                             if (!validateMaze()) return;
+                            pickExit(w, h);
                             computeDistMap();
                             computeDifficulty();
                             updateMazeInfoLabels();
@@ -1524,6 +1620,7 @@
                             generateMaze(w, h);
                         }
                         if (!validateMaze()) return;
+                        pickExit(w, h);
                         computeDistMap();
                         computeDifficulty();
                         updateMazeInfoLabels();
@@ -1599,7 +1696,15 @@
                     if (maze.length) draw();
                 });
                 chkFog.addEventListener("change", () => {
-                    if (maze.length) draw();
+                    if (!maze.length) return;
+                    const v = parseInt(rngVision.value);
+                    if (chkFog.checked) {
+                        // Shrink: full view → vision range
+                        startFogAnim(getFogFullRadius(), v);
+                    } else {
+                        // Expand: vision range → full view
+                        startFogAnim(v, getFogFullRadius());
+                    }
                 });
                 rngVision.addEventListener("input", () => {
                     visionVal.textContent = rngVision.value;

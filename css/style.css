@@ -10,8 +10,7 @@
     --accent: #6c63ff;
     --accent2: #ff6584;
     --text: #e0e0e0;
-    --text-secondary: #999;
-    --text-muted: #666;
+    --text-muted: #777;
     --win: #00e676;
     --panel-width: 440px;
     --font-base: 0.95rem;
@@ -77,7 +76,7 @@ h1 {
     border-radius: 6px;
     background: rgba(108, 99, 255, 0.08);
     border: 1px solid rgba(108, 99, 255, 0.2);
-    color: var(--text-secondary);
+    color: var(--text);
     font-size: var(--font-sm);
     text-align: center;
 }
@@ -112,7 +111,7 @@ h1 {
 }
 .field-row label {
     font-size: var(--font-base);
-    color: var(--text-secondary);
+    color: var(--text);
 }
 
 /* ── Inputs ── */
@@ -169,7 +168,7 @@ span.x {
     gap: 6px;
     cursor: pointer;
     font-size: var(--font-base);
-    color: var(--text-secondary);
+    color: var(--text);
     user-select: none;
 }
 .toggle-label input {
@@ -208,7 +207,7 @@ span.x {
     align-items: center;
     gap: 5px;
     font-size: var(--font-sm);
-    color: var(--text-secondary);
+    color: var(--text);
 }
 .speed-label input[type="range"] {
     width: 60px;
@@ -280,7 +279,7 @@ span.x {
     padding: 5px 10px;
     font-size: var(--font-sm);
     background: var(--bg);
-    color: var(--text-secondary);
+    color: var(--text);
     border: 1px solid var(--border);
     border-radius: 6px;
     line-height: 1.2;
@@ -322,7 +321,7 @@ span.x {
     grid-template-columns: 1fr 1fr 1fr;
     gap: 3px 10px;
     font-size: var(--font-base);
-    color: var(--text-secondary);
+    color: var(--text);
 }
 
 /* ── Results ── */
@@ -336,7 +335,7 @@ span.x {
 }
 .results p {
     font-size: var(--font-base);
-    color: var(--text-secondary);
+    color: var(--text);
     margin-bottom: 8px;
 }
 .results canvas {
