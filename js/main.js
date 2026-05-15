@@ -9,6 +9,7 @@
                         animate: "Animate",
                         heatmap: "Heatmap",
                         fog: "Fog",
+                        display: "Display",
                         solver: "Solver",
                         solve: "Solve",
                         stop: "Stop",
@@ -35,11 +36,43 @@
                         origin: "Origin",
                         dist: "Dist",
                         difficulty: "Difficulty",
+                        shortest: "Shortest",
+                        dead_ends: "Dead Ends",
+                        corridors: "Corridors",
+                        t_junctions: "T-Junctions",
+                        crossroads: "Crossroads",
+                        maze_info: "Maze Info",
+                        progress: "Progress",
                         win_stats: (c, t, o, s, d) =>
                             `Cells: ${c} | Origin: ${o} | Shortest: ${s} | Difficulty: ${d}`,
                         win_result: (steps, elapsed) =>
                             `You escaped in ${steps} steps and ${elapsed}s!`,
                         footer: "Created by summbreeze",
+                        // Tooltips
+                        tip_gen_algo: "Choose maze generation algorithm",
+                        tip_gen_dfs: "DFS: Deep random paths, long corridors, biased distribution",
+                        tip_gen_wilson: "Wilson: Uniform random spanning tree, balanced structure",
+                        tip_gen_division: "Division: Top-down recursive split, geometric patterns",
+                        tip_animate: "Watch the maze being generated step by step",
+                        tip_sol_algo: "Choose an automatic solving strategy",
+                        tip_sol_random: "Random Walk: Pick a random direction each step",
+                        tip_sol_smart: "Smart Random: Prefer unvisited cells and direction toward exit",
+                        tip_sol_smartdfs: "Junction Walker: Smart choice at junctions, auto-traverse corridors",
+                        tip_sol_dfs: "DFS: Find the path instantly using depth-first search",
+                        tip_sol_bfs: "BFS: Find the shortest path using breadth-first search",
+                        tip_sol_righthand: "Right-Hand Rule: Always keep right hand on wall, guaranteed to solve",
+                        tip_heatmap: "Color cells by connectivity: darker = dead end, brighter = junction",
+                        tip_trail: "Show visited cells with orange overlay, darker = more visits",
+                        tip_fog: "Hide unvisited areas, only see cells within vision range",
+                        tip_difficulty: "Difficulty score based on junctions, dead ends, and path length",
+                        tip_shortest: "Minimum steps from start to exit",
+                        tip_c1: "Dead ends: 1 opening, traps that waste steps",
+                        tip_c2: "Corridors: 2 openings, no decision needed",
+                        tip_c3: "T-Junctions: 3 openings, 1 wrong choice possible",
+                        tip_c4: "Crossroads: 4 openings, 2 wrong choices possible",
+                        tip_cells: "Unique cells visited / total cells",
+                        tip_origin: "Times returned to the starting cell",
+                        tip_dist: "Current Manhattan distance to exit",
                     },
                     zh: {
                         subtitle: "生成、求解、探索",
@@ -49,6 +82,7 @@
                         animate: "动画",
                         heatmap: "热力图",
                         fog: "迷雾",
+                        display: "显示",
                         solver: "求解算法",
                         solve: "求解",
                         stop: "停止",
@@ -75,10 +109,42 @@
                         origin: "回原点",
                         dist: "距离",
                         difficulty: "难度",
+                        shortest: "最短路",
+                        dead_ends: "死胡同",
+                        corridors: "走廊",
+                        t_junctions: "三岔路口",
+                        crossroads: "十字路口",
+                        maze_info: "迷宫信息",
+                        progress: "进度",
                         win_stats: (c, t, o, s, d) =>
                             `格子: ${c} | 回原点: ${o} | 最短路: ${s} | 难度: ${d}`,
                         win_result: (steps, elapsed) => `你用了 ${steps} 步，耗时 ${elapsed} 秒!`,
                         footer: "由 夏风之羽 创作",
+                        // Tooltips
+                        tip_gen_algo: "选择迷宫生成算法",
+                        tip_gen_dfs: "DFS: 随机深度优先，长走廊多，分布不均匀",
+                        tip_gen_wilson: "Wilson: 均匀随机生成树，结构均衡",
+                        tip_gen_division: "递归分割: 自顶向下切分，几何感强",
+                        tip_animate: "逐步观看迷宫的生成过程",
+                        tip_sol_algo: "选择自动求解策略",
+                        tip_sol_random: "随机游走: 每步随机选方向",
+                        tip_sol_smart: "智能随机: 偏好未访问格子和出口方向",
+                        tip_sol_smartdfs: "岔路口行者: 在岔路口做决策，走廊自动通过",
+                        tip_sol_dfs: "DFS: 深度优先搜索，直接找到路径",
+                        tip_sol_bfs: "BFS: 广度优先搜索，找到最短路径",
+                        tip_sol_righthand: "右手法则: 始终右手贴墙走，保证能到终点",
+                        tip_heatmap: "按连通度着色: 暗 = 死胡同，亮 = 交叉口",
+                        tip_trail: "显示走过的格子，颜色越深 = 经过次数越多",
+                        tip_fog: "隐藏未探索区域，只能看到视野范围内的格子",
+                        tip_difficulty: "基于岔路口、死胡同和路径长度计算的难度分数",
+                        tip_shortest: "从起点到终点的最少步数",
+                        tip_c1: "死胡同: 1个出口，走进去会浪费步数",
+                        tip_c2: "走廊: 2个出口，不需要决策",
+                        tip_c3: "三岔路口: 3个出口，有1个错误选择",
+                        tip_c4: "十字路口: 4个出口，有2个错误选择",
+                        tip_cells: "已走过的不同格子数 / 总格子数",
+                        tip_origin: "回到起点的次数",
+                        tip_dist: "当前位置到终点的距离",
                     },
                 };
                 let lang = localStorage.getItem("maze-lang") || "en";
@@ -92,18 +158,35 @@
                         const key = el.dataset.i18n;
                         if (t[key]) el.textContent = t[key];
                     });
+                    // Apply tooltips
+                    document.querySelectorAll("[data-tip]").forEach((el) => {
+                        const key = el.dataset.tip;
+                        if (t[key]) el.title = t[key];
+                    });
                     // Update dynamic stat labels
                     updateStatLabels();
+                    updateMazeInfoLabels();
                 }
 
                 function updateStatLabels() {
                     const t = i18n[lang];
+                    // Dynamic (progress)
                     stepsEl.textContent = `${t.steps}: ${steps}`;
                     timeEl.textContent = `${t.time}: ${timerStarted ? Math.floor((Date.now() - startTime) / 1000) : 0}s`;
                     cellsEl.textContent = `${t.cells}: ${uniqueCells}/${cols * rows || 0}`;
                     originEl.textContent = `${t.origin}: ${originReturns}`;
                     distEl.textContent = `${t.dist}: ${distMap.length ? (distMap[player.y]?.[player.x] ?? "-") : "-"}`;
+                }
+
+                function updateMazeInfoLabels() {
+                    const t = i18n[lang];
+                    // Static (maze info)
                     diffEl.textContent = `${t.difficulty}: ${mazeDifficulty || "-"}`;
+                    shortestEl.textContent = `${t.shortest}: ${distMap.length ? distMap[0][0] : "-"}`;
+                    c1El.textContent = `${t.dead_ends}: ${mazeC1 || "-"}`;
+                    c2El.textContent = `${t.corridors}: ${mazeC2 || "-"}`;
+                    c3El.textContent = `${t.t_junctions}: ${mazeC3 || "-"}`;
+                    c4El.textContent = `${t.crossroads}: ${mazeC4 || "-"}`;
                 }
 
                 btnLang.addEventListener("click", () => {
@@ -130,9 +213,8 @@
                 const btnStop = document.getElementById("btn-stop");
                 const btnAgain = document.getElementById("btn-again");
                 const btnNewGame = document.getElementById("btn-newgame");
-                const overlay = document.getElementById("overlay");
+                const resultsEl = document.getElementById("results");
                 const winMsg = document.getElementById("win-msg");
-                const winStats = document.getElementById("win-stats");
                 const chartCanvas = document.getElementById("chart-canvas");
                 const chartCtx = chartCanvas.getContext("2d");
                 const stepsEl = document.getElementById("steps-display");
@@ -141,6 +223,11 @@
                 const originEl = document.getElementById("origin-display");
                 const distEl = document.getElementById("dist-display");
                 const diffEl = document.getElementById("diff-display");
+                const shortestEl = document.getElementById("shortest-display");
+                const c1El = document.getElementById("c1-display");
+                const c2El = document.getElementById("c2-display");
+                const c3El = document.getElementById("c3-display");
+                const c4El = document.getElementById("c4-display");
 
                 let maze = [];
                 let cols, rows, cellSize;
@@ -627,6 +714,7 @@
 
                 // Maze difficulty score
                 let mazeDifficulty = 0;
+                let mazeC1 = 0, mazeC2 = 0, mazeC3 = 0, mazeC4 = 0;
                 function computeDifficulty() {
                     let c1 = 0,
                         c2 = 0,
@@ -656,6 +744,7 @@
                     // Shortest path: dominant factor (measures how winding the solution is)
                     const raw = 1 * c1 + 0 * c2 + 3 * c3 + 5 * c4 + 8 * shortest;
                     mazeDifficulty = raw;
+                    mazeC1 = c1; mazeC2 = c2; mazeC3 = c3; mazeC4 = c4;
                     return mazeDifficulty;
                 }
 
@@ -715,10 +804,12 @@
                 // ── Drawing ──
 
                 function computeCellSize() {
-                    const maxW = Math.min(window.innerWidth - 80, 1200);
-                    const maxH = Math.min(window.innerHeight - 280, 900);
+                    // Account for panel width (400px) + padding
+                    const panelW = 440;
+                    const maxW = window.innerWidth - panelW - 80;
+                    const maxH = window.innerHeight - 80;
                     cellSize = Math.max(
-                        12,
+                        6,
                         Math.min(40, Math.floor(Math.min(maxW / cols, maxH / rows))),
                     );
                 }
@@ -743,9 +834,10 @@
                     const vision = parseInt(rngVision.value);
                     const connColors = ["#12121f", "#12121f", "#181830", "#222245", "#3d3d78"];
 
-                    // Helper: manhattan distance to player
+                    // Helper: euclidean distance to player
                     function distToPlayer(x, y) {
-                        return Math.abs(x - player.x) + Math.abs(y - player.y);
+                        const dx = x - player.x, dy = y - player.y;
+                        return Math.sqrt(dx * dx + dy * dy);
                     }
 
                     // Draw cell backgrounds (heatmap + trail)
@@ -927,19 +1019,16 @@
                         won = true;
                         clearInterval(timerInterval);
                         stopSolving();
+                        // Reveal full maze on win (disable fog, enable trail)
+                        chkFog.checked = false;
+                        chkTrail.checked = true;
+                        draw();
                         const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                        const shortest = getShortestPathLength();
                         const t = i18n[lang];
                         winMsg.textContent = t.win_result(steps, elapsed);
-                        winStats.textContent = t.win_stats(
-                            `${uniqueCells}/${cols * rows}`,
-                            null,
-                            originReturns,
-                            shortest,
-                            mazeDifficulty,
-                        );
                         drawChart();
-                        overlay.classList.add("show");
+                        resultsEl.style.display = "";
+                        resultsEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
                     }
                 }
 
@@ -1379,16 +1468,16 @@
                     startTime = 0;
                     clearInterval(timerInterval);
                     updateStatLabels();
-                    overlay.classList.remove("show");
+                    resultsEl.style.display = "none";
                     draw();
                 }
 
                 function startGame() {
                     stopSolving();
                     stopGenAnimation();
-                    overlay.classList.remove("show");
-                    const w = clamp(parseInt(inpW.value) || 15, 5, 50);
-                    const h = clamp(parseInt(inpH.value) || 15, 5, 50);
+                    resultsEl.style.display = "none";
+                    const w = clamp(parseInt(inpW.value) || 15, 5, 100);
+                    const h = clamp(parseInt(inpH.value) || 15, 5, 100);
                     inpW.value = w;
                     inpH.value = h;
 
@@ -1422,6 +1511,7 @@
                             if (!validateMaze()) return;
                             computeDistMap();
                             computeDifficulty();
+                            updateMazeInfoLabels();
                             resetCounters();
                         });
                     } else {
@@ -1436,6 +1526,7 @@
                         if (!validateMaze()) return;
                         computeDistMap();
                         computeDifficulty();
+                        updateMazeInfoLabels();
                         resetCounters();
                     }
                 }
@@ -1491,6 +1582,12 @@
                 });
 
                 btnGen.addEventListener("click", startGame);
+                document.querySelectorAll(".btn-preset").forEach((btn) => {
+                    btn.addEventListener("click", () => {
+                        inpW.value = btn.dataset.w;
+                        inpH.value = btn.dataset.h;
+                    });
+                });
                 btnAgain.addEventListener("click", resetCounters);
                 btnNewGame.addEventListener("click", startGame);
                 btnSolve.addEventListener("click", startSolving);
