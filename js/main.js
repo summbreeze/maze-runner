@@ -8,6 +8,7 @@
                         generate: "Generate",
                         animate: "Animate",
                         heatmap: "Heatmap",
+                        fog: "Fog",
                         solver: "Solver",
                         solve: "Solve",
                         stop: "Stop",
@@ -47,6 +48,7 @@
                         generate: "生成",
                         animate: "动画",
                         heatmap: "热力图",
+                        fog: "迷雾",
                         solver: "求解算法",
                         solve: "求解",
                         stop: "停止",
@@ -117,6 +119,9 @@
                 const selSolver = document.getElementById("sel-solver");
                 const chkHeatmap = document.getElementById("chk-heatmap");
                 const chkTrail = document.getElementById("chk-trail");
+                const chkFog = document.getElementById("chk-fog");
+                const rngVision = document.getElementById("rng-vision");
+                const visionVal = document.getElementById("vision-val");
                 const chkAnimate = document.getElementById("chk-animate");
                 const rngSpeed = document.getElementById("rng-speed");
                 const speedVal = document.getElementById("speed-val");
@@ -734,11 +739,20 @@
 
                     const heatmap = chkHeatmap.checked;
                     const showTrail = chkTrail.checked;
+                    const fogOn = chkFog.checked && !genAnimating;
+                    const vision = parseInt(rngVision.value);
                     const connColors = ["#12121f", "#12121f", "#181830", "#222245", "#3d3d78"];
+
+                    // Helper: manhattan distance to player
+                    function distToPlayer(x, y) {
+                        return Math.abs(x - player.x) + Math.abs(y - player.y);
+                    }
 
                     // Draw cell backgrounds (heatmap + trail)
                     for (let y = 0; y < rows; y++) {
                         for (let x = 0; x < cols; x++) {
+                            if (fogOn && distToPlayer(x, y) > vision) continue;
+
                             const cx = x * cellSize;
                             const cy = y * cellSize;
                             const cell = maze[y][x];
@@ -764,13 +778,15 @@
                         }
                     }
 
-                    // Batch all walls into a single path
+                    // Batch all walls into a single path (only visible cells)
                     ctx.beginPath();
                     ctx.strokeStyle = "#6868a8";
                     ctx.lineWidth = 3;
                     ctx.lineCap = "round";
                     for (let y = 0; y < rows; y++) {
                         for (let x = 0; x < cols; x++) {
+                            if (fogOn && distToPlayer(x, y) > vision) continue;
+
                             const cx = x * cellSize;
                             const cy = y * cellSize;
                             const cell = maze[y][x];
@@ -794,18 +810,33 @@
                     }
                     ctx.stroke();
 
-                    // Exit marker
-                    const ex = (cols - 1) * cellSize + cellSize / 2;
-                    const ey = (rows - 1) * cellSize + cellSize / 2;
-                    const glow = ctx.createRadialGradient(ex, ey, 0, ex, ey, cellSize * 0.6);
-                    glow.addColorStop(0, "rgba(0,230,118,0.35)");
-                    glow.addColorStop(1, "rgba(0,230,118,0)");
-                    ctx.fillStyle = glow;
-                    ctx.fillRect((cols - 1) * cellSize, (rows - 1) * cellSize, cellSize, cellSize);
-                    ctx.beginPath();
-                    ctx.arc(ex, ey, cellSize * 0.32, 0, Math.PI * 2);
-                    ctx.fillStyle = "#00e676";
-                    ctx.fill();
+                    // Fog edge gradient: dim cells at vision boundary
+                    if (fogOn) {
+                        for (let y = 0; y < rows; y++) {
+                            for (let x = 0; x < cols; x++) {
+                                const d = distToPlayer(x, y);
+                                if (d === vision) {
+                                    ctx.fillStyle = "rgba(15,15,26,0.5)";
+                                    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                                }
+                            }
+                        }
+                    }
+
+                    // Exit marker (only if visible)
+                    if (!fogOn || distToPlayer(cols - 1, rows - 1) <= vision) {
+                        const ex = (cols - 1) * cellSize + cellSize / 2;
+                        const ey = (rows - 1) * cellSize + cellSize / 2;
+                        const glow = ctx.createRadialGradient(ex, ey, 0, ex, ey, cellSize * 0.6);
+                        glow.addColorStop(0, "rgba(0,230,118,0.35)");
+                        glow.addColorStop(1, "rgba(0,230,118,0)");
+                        ctx.fillStyle = glow;
+                        ctx.fillRect((cols - 1) * cellSize, (rows - 1) * cellSize, cellSize, cellSize);
+                        ctx.beginPath();
+                        ctx.arc(ex, ey, cellSize * 0.32, 0, Math.PI * 2);
+                        ctx.fillStyle = "#00e676";
+                        ctx.fill();
+                    }
 
                     // Player
                     const px = player.x * cellSize + cellSize / 2;
@@ -1468,6 +1499,13 @@
                     if (maze.length) draw();
                 });
                 chkTrail.addEventListener("change", () => {
+                    if (maze.length) draw();
+                });
+                chkFog.addEventListener("change", () => {
+                    if (maze.length) draw();
+                });
+                rngVision.addEventListener("input", () => {
+                    visionVal.textContent = rngVision.value;
                     if (maze.length) draw();
                 });
                 rngSpeed.addEventListener("input", () => {
