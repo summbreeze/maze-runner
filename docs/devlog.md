@@ -1,5 +1,10 @@
 # Development Log
 
+- 2026-05-16 Keyboard shortcuts
+  - Add shortcuts: G(generate) Q(solve/stop) R(reset) N(new game) F(fog) H(heatmap) T(trail)
+  - Show all shortcuts in hint-box (EN/ZH)
+  - Q toggles solve on/off
+
 - 2026-05-16 Random exit, player eyes, fog animation, state machine fixes
   - Add random exit toggle: exit placed at random distant cell (distance >= maxDist/2)
   - Add player direction eyes: two dots (up/down) or one dot (left/right) on player circle

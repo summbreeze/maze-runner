@@ -16,7 +16,7 @@
                         trail: "Trail",
                         player: "Player",
                         exit: "Exit",
-                        hint: "Use arrow keys or WASD to move",
+                        hint: "Arrow / WASD: Move | G: Generate | Q: Solve | R: Reset | N: New | F H T: Fog Heatmap Trail",
                         congrats: "Congratulations!",
                         win_msg: "You escaped the maze!",
                         play_again: "Play Again",
@@ -91,7 +91,7 @@
                         trail: "轨迹",
                         player: "玩家",
                         exit: "出口",
-                        hint: "使用方向键或 WASD 移动",
+                        hint: "方向键 / WASD: 移动 | G: 生成 | Q: 求解 | R: 重置 | N: 新游戏 | F H T: 迷雾 热力图 轨迹",
                         congrats: "恭喜通关!",
                         win_msg: "你成功走出了迷宫!",
                         play_again: "再来一次",
@@ -1655,6 +1655,38 @@
                         case "D":
                             e.preventDefault();
                             movePlayer(1, 0);
+                            break;
+                        case "f":
+                        case "F":
+                            chkFog.checked = !chkFog.checked;
+                            chkFog.dispatchEvent(new Event("change"));
+                            break;
+                        case "h":
+                        case "H":
+                            chkHeatmap.checked = !chkHeatmap.checked;
+                            if (maze.length) draw();
+                            break;
+                        case "t":
+                        case "T":
+                            chkTrail.checked = !chkTrail.checked;
+                            if (maze.length) draw();
+                            break;
+                        case "g":
+                        case "G":
+                            startGame();
+                            break;
+                        case "r":
+                        case "R":
+                            resetCounters();
+                            break;
+                        case "q":
+                        case "Q":
+                            if (solving) stopSolving();
+                            else startSolving();
+                            break;
+                        case "n":
+                        case "N":
+                            startGame();
                             break;
                     }
                 });
