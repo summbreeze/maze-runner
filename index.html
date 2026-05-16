@@ -2,13 +2,14 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
         <title>Maze Runner</title>
         <link rel="stylesheet" href="css/style.css" />
     </head>
     <body>
-        <button class="btn-lang" id="btn-lang">中文</button>
-
         <div class="app">
             <!-- Left: Maze Grid -->
             <div class="grid-area">
@@ -32,7 +33,10 @@
 
             <!-- Right: Panel -->
             <div class="panel">
-                <h1>MAZE RUNNER</h1>
+                <div class="panel-header">
+                    <h1>MAZE RUNNER</h1>
+                    <button class="btn-lang" id="btn-lang">中文</button>
+                </div>
                 <p class="subtitle" data-i18n="subtitle">Generate, Solve, and Explore</p>
 
                 <!-- Generator -->
@@ -49,11 +53,23 @@
                     </div>
                     <div class="field-row">
                         <select id="sel-algo" data-tip="tip_gen_algo">
-                            <option value="dfs" data-i18n="gen_dfs" data-tip="tip_gen_dfs">DFS (Recursive Backtracker)</option>
-                            <option value="wilson" data-i18n="gen_wilson" data-tip="tip_gen_wilson">Wilson (Uniform Spanning Tree)</option>
-                            <option value="division" data-i18n="gen_division" data-tip="tip_gen_division">Recursive Division (Top-Down)</option>
+                            <option value="dfs" data-i18n="gen_dfs" data-tip="tip_gen_dfs">
+                                DFS (Recursive Backtracker)
+                            </option>
+                            <option value="wilson" data-i18n="gen_wilson" data-tip="tip_gen_wilson">
+                                Wilson (Uniform Spanning Tree)
+                            </option>
+                            <option
+                                value="division"
+                                data-i18n="gen_division"
+                                data-tip="tip_gen_division"
+                            >
+                                Recursive Division (Top-Down)
+                            </option>
                         </select>
-                        <button class="btn btn-primary" id="btn-gen" data-i18n="generate">Generate</button>
+                        <button class="btn btn-primary" id="btn-gen" data-i18n="generate">
+                            Generate
+                        </button>
                     </div>
                     <div class="field-row">
                         <label class="toggle-label" data-tip="tip_animate">
@@ -78,15 +94,41 @@
                     <div class="section-title" data-i18n="solver">Solver</div>
                     <div class="field-row">
                         <select id="sel-solver" data-tip="tip_sol_algo">
-                            <option value="random" data-i18n="sol_random" data-tip="tip_sol_random">Random Walk</option>
-                            <option value="smart" data-i18n="sol_smart" data-tip="tip_sol_smart">Smart Random</option>
-                            <option value="smartdfs" data-i18n="sol_smartdfs" data-tip="tip_sol_smartdfs">Junction Walker</option>
-                            <option value="dfs" data-i18n="sol_dfs" data-tip="tip_sol_dfs">DFS</option>
-                            <option value="bfs" data-i18n="sol_bfs" data-tip="tip_sol_bfs">BFS (Shortest Path)</option>
-                            <option value="righthand" data-i18n="sol_righthand" data-tip="tip_sol_righthand">Right-Hand Rule</option>
+                            <option value="random" data-i18n="sol_random" data-tip="tip_sol_random">
+                                Random Walk
+                            </option>
+                            <option
+                                value="smartdfs"
+                                data-i18n="sol_smartdfs"
+                                data-tip="tip_sol_smartdfs"
+                            >
+                                Junction Walker
+                            </option>
+                            <option value="dfs" data-i18n="sol_dfs" data-tip="tip_sol_dfs">
+                                DFS
+                            </option>
+                            <option value="bfs" data-i18n="sol_bfs" data-tip="tip_sol_bfs">
+                                BFS (Shortest Path)
+                            </option>
+                            <option
+                                value="righthand"
+                                data-i18n="sol_righthand"
+                                data-tip="tip_sol_righthand"
+                            >
+                                Right-Hand Rule
+                            </option>
                         </select>
-                        <button class="btn btn-secondary" id="btn-solve" data-i18n="solve">Solve</button>
-                        <button class="btn btn-danger" id="btn-stop" style="display: none" data-i18n="stop">Stop</button>
+                        <button class="btn btn-secondary" id="btn-solve" data-i18n="solve">
+                            Solve
+                        </button>
+                        <button
+                            class="btn btn-danger"
+                            id="btn-stop"
+                            style="display: none"
+                            data-i18n="stop"
+                        >
+                            Stop
+                        </button>
                     </div>
                 </div>
 
@@ -115,12 +157,24 @@
                         </label>
                     </div>
                     <div class="legend">
-                        <span><i class="dot dot-player"></i> <span data-i18n="player">Player</span></span>
+                        <span
+                            ><i class="dot dot-player"></i>
+                            <span data-i18n="player">Player</span></span
+                        >
                         <span><i class="dot dot-exit"></i> <span data-i18n="exit">Exit</span></span>
-                        <span><i class="dot dot-trail"></i> <span data-i18n="trail">Trail</span></span>
-                        <span><i class="dot dot-gen"></i> <span data-i18n="generator">Generator</span></span>
+                        <span
+                            ><i class="dot dot-trail"></i>
+                            <span data-i18n="trail">Trail</span></span
+                        >
+                        <span
+                            ><i class="dot dot-gen"></i>
+                            <span data-i18n="generator">Generator</span></span
+                        >
                     </div>
-                    <div class="hint-box" data-i18n="hint">Arrow / WASD: Move | G: Generate | Q: Solve | R: Reset | N: New | F H T: Fog Heatmap Trail</div>
+                    <div class="hint-box" data-i18n="hint">
+                        Arrow / WASD: Move | G: Generate | Q: Solve | R: Reset | N: New | F H T: Fog
+                        Heatmap Trail
+                    </div>
                 </div>
 
                 <!-- Maze Info (static, computed on generation) -->
@@ -154,8 +208,12 @@
                     <p id="win-msg" data-i18n="win_msg">You escaped the maze!</p>
                     <canvas id="chart-canvas" width="320" height="140"></canvas>
                     <div class="field-row" style="margin-top: 12px">
-                        <button class="btn btn-primary" id="btn-again" data-i18n="play_again">Play Again</button>
-                        <button class="btn btn-secondary" id="btn-newgame" data-i18n="new_game">New Game</button>
+                        <button class="btn btn-primary" id="btn-again" data-i18n="play_again">
+                            Play Again
+                        </button>
+                        <button class="btn btn-secondary" id="btn-newgame" data-i18n="new_game">
+                            New Game
+                        </button>
                     </div>
                 </div>
 
@@ -163,6 +221,6 @@
             </div>
         </div>
 
-        <script src="js/main.js"></script>
+        <script type="module" src="js/main.js"></script>
     </body>
 </html>

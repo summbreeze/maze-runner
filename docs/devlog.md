@@ -1,5 +1,20 @@
 # Development Log
 
+- 2026-05-16 Modularize codebase + mobile fixes + code cleanup
+  - Refactor: split single IIFE main.js (1754 lines) into 8 ES Modules (state, i18n, generators, maze-utils, renderer, solvers, game, main)
+  - Fix: computeCellSize() mobile bug — no longer subtracts 440px panel width on mobile layout
+  - Fix: mobile flex layout collapse — grid-area gets `flex: none; overflow: visible` on mobile
+  - Add: canvas HiDPI/Retina support via devicePixelRatio scaling
+  - Add: swipe gesture support on maze canvas for mobile movement
+  - Add: dynamic wall thickness and player eye scaling based on cellSize
+  - Add: viewport zoom prevention, touch-action, overscroll-behavior for mobile
+  - Fix: D-Pad uses pointerdown instead of click for instant mobile response
+  - Fix: language button moved from fixed overlay into panel header (no longer obscures maze)
+  - Remove: Smart Random solver (superseded by Junction Walker with identical heuristic)
+  - Remove: hardcoded bottom-right direction bias from solvers
+  - Fix: resetCounters now resets playerDir
+  - Fix: misc cleanup — unused imports, dead variables, duplicate CSS declarations
+
 - 2026-05-16 Keyboard shortcuts
   - Add shortcuts: G(generate) Q(solve/stop) R(reset) N(new game) F(fog) H(heatmap) T(trail)
   - Show all shortcuts in hint-box (EN/ZH)

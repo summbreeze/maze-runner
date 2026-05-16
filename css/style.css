@@ -56,6 +56,11 @@ body {
 }
 
 /* ── Title ── */
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
 h1 {
     font-size: 1.9rem;
     font-weight: 700;
@@ -314,7 +319,6 @@ span.x {
 .dot-trail { background: #e6783a; }
 .dot-gen { background: #ff6584; }
 
-/* ── Hint box ── */
 /* ── Stats ── */
 .stats-grid {
     display: grid;
@@ -353,6 +357,7 @@ span.x {
     border: 1px solid var(--border);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     flex-shrink: 0;
+    touch-action: none;
 }
 .maze-wrapper canvas {
     display: block;
@@ -372,7 +377,6 @@ span.x {
 .dpad .btn-dir {
     width: 50px;
     height: 50px;
-    border: none;
     border-radius: 10px;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -384,6 +388,8 @@ span.x {
     justify-content: center;
     transition: background 0.15s;
     user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 .dpad .btn-dir:active {
     background: var(--accent);
@@ -404,9 +410,6 @@ footer {
 
 /* ── Language button ── */
 .btn-lang {
-    position: fixed;
-    top: 12px;
-    right: calc(var(--panel-width) + 16px);
     padding: 3px 10px;
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -414,11 +417,13 @@ footer {
     color: var(--text);
     font-size: var(--font-sm);
     cursor: pointer;
-    z-index: 50;
     transition: border-color 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 .btn-lang:hover {
     border-color: var(--accent);
+    opacity: 1;
 }
 
 /* ── Mobile responsive ── */
@@ -426,14 +431,17 @@ footer {
     body {
         height: auto;
         overflow: auto;
+        overscroll-behavior: none;
     }
     .app {
         flex-direction: column;
         height: auto;
     }
     .grid-area {
+        flex: none;
         padding: 16px;
         min-height: auto;
+        overflow: visible;
     }
     .panel {
         width: 100%;
@@ -447,7 +455,7 @@ footer {
     h1 {
         font-size: 1.4rem;
     }
-    .btn-lang {
-        right: 12px;
+    .hint-box {
+        display: none;
     }
 }
